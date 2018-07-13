@@ -99,7 +99,7 @@ ASRC =
 # Optimization level, can be [0, 1, 2, 3, s]. 
 #     0 = turn off optimization. s = optimize for size.
 #     (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-OPT = s
+OPT = 0
 
 
 # Debugging format.
@@ -154,7 +154,7 @@ CFLAGS += -funsigned-bitfields
 CFLAGS += -fpack-struct
 CFLAGS += -fshort-enums
 CFLAGS += -Wall
-CFLAGS += -Wstrict-prototypes
+#CFLAGS += -Wstrict-prototypes
 CFLAGS += -pedantic
 #CFLAGS += -mshort-calls
 #CFLAGS += -fno-unit-at-a-time
@@ -185,7 +185,7 @@ CPPFLAGS += -Wall
 CFLAGS += -Wundef
 #CPPFLAGS += -mshort-calls
 #CPPFLAGS += -fno-unit-at-a-time
-CPPFLAGS += -Wstrict-prototypes
+#CPPFLAGS += -Wstrict-prototypes
 CPPFLAGS += -Wunreachable-code
 CPPFLAGS += -Wsign-compare
 CPPFLAGS += -Wa,-adhlns=$(<:%.cpp=$(OBJDIR)/%.lst)
