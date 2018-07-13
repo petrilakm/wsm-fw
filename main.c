@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
 
 #include "leds.h"
 
@@ -10,6 +11,7 @@
 
 int main();
 void init();
+void init_opto_measure();
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -32,4 +34,19 @@ void init() {
 	led_red_off();
 	led_yellow_off();
 	led_green_off();
+
+	init_opto_measure();
+
+	sei(); // enable interrupts globally
+}
+
+void init_opto_measure() {
+	// PD0 is input by default
+	// PD0 pull-up is disabled by default (pullup is hardware-based)
+	EICRA |= 0x03; // configure INT0 interrupt on rising edge
+	EIMSK |= 1 << INT0; // enable INT0
+}
+
+ISR(INT0_vect) {
+	led_yellow_toggle();
 }
