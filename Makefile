@@ -44,6 +44,11 @@
 MCU = atmega328
 
 
+# Processor fuses.
+#     Define fuses for processor, flash by calling 'make fuses'
+FUSES = -U lfuse:w:0xd0:m -U hfuse:w:0xd9:m -U efuse:w:0xfd:m
+
+
 # Processor frequency.
 #     This will define a symbol, F_CPU, in all source code files equal to the 
 #     processor frequency. You can then use this symbol in your source code to 
@@ -279,9 +284,9 @@ AVRDUDE_PROGRAMMER = stk500
 
 # com1 = serial port. Use lpt1 to connect to parallel port.
 # for linux:
-#AVRDUDE_PORT = /dev/ttyUSB0    # programmer connected to serial device
+AVRDUDE_PORT = /dev/ttyUSB0    # programmer connected to serial device
 # for windows:
-AVRDUDE_PORT = com5    # programmer connected to serial device
+#AVRDUDE_PORT = com5    # programmer connected to serial device
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
@@ -451,10 +456,12 @@ gccversion :
 
 
 
-# Program the device.  
+# Program the device.
 program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
+fuses:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(FUSES)
 
 # Generate avr-gdb config/init file which does the following:
 #     define the reset signal, load the target file, connect to target, and set 
@@ -621,4 +628,4 @@ $(shell mkdir $(OBJDIR) 2>/dev/null)
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
 build elf hex eep lss sym coff extcoff \
-clean clean_list program debug gdb-config
+clean clean_list program debug gdb-config fuses
