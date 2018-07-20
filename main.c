@@ -6,6 +6,7 @@
 #include <avr/interrupt.h>
 
 #include "leds.h"
+#include "lib/uart.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -24,6 +25,7 @@ int main() {
 
 void init() {
 	leds_init();
+	uart_init();
 
 	led_red_on();
 	led_yellow_on();
