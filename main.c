@@ -52,3 +52,16 @@ void init_opto_measure() {
 ISR(INT0_vect) {
 	led_yellow_toggle();
 }
+
+void send_speed(uint16_t speed) {
+	char data[6];
+
+	data[0] = 0x03;
+	data[1] = 0x01;
+	data[2] = speed >> 8;
+	data[3] = speed & 0xFF;
+	data[4] = 0x03 ^ 0x01 ^ data[2] ^ data[3];
+	data[5] = 0;
+
+	uart_putstr(data);
+}
