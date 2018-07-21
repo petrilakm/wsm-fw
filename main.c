@@ -1,4 +1,4 @@
-/* Main source file of Measure car project.
+/* Main source file of Wireless Speedometer project.
  */
 
 #include <stdbool.h>
