@@ -15,7 +15,6 @@ int main();
 void init();
 void opto_init_interrupt();
 void opto_init_icp();
-void opto_init_timeout();
 void opto_hist_reset();
 uint16_t opto_get_interval();
 void send_speed(uint16_t speed);
@@ -23,10 +22,12 @@ void send_speed(uint16_t speed);
 ///////////////////////////////////////////////////////////////////////////////
 
 #define OPTO_HIST_LEN 8u
+#define OPTO_TIMEOUT 50 // 500 ms
 volatile uint16_t opto_hist[OPTO_HIST_LEN] = {0xFFFF, };
 volatile int8_t opto_hist_next_index = 0;
 volatile uint16_t opto_last_measure_time;
 volatile bool opto_last_measure_time_ok = false;
+volatile uint8_t opto_timeout_counter = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -55,7 +56,11 @@ void init() {
 	led_green_off();
 
 	opto_init_icp();
-	opto_init_timeout();
+
+	// Setup main timer0 on 10 ms
+	TCCR0B |= 0x04; // prescaler 256×
+	TIMSK0 |= 1 << OCIE0A; // enable interrupt on compare match A
+	OCR0A = 71; // set compare match A to match 10 ms
 
 	sei(); // enable interrupts globally
 }
@@ -78,9 +83,6 @@ void opto_init_icp() {
 	TCCR1B |= 0x02; // prescaler 8×
 }
 
-void opto_init_timeout() {
-}
-
 ISR(INT0_vect) {
 	led_yellow_toggle();
 }
@@ -96,6 +98,22 @@ ISR(TIMER1_CAPT_vect) {
 		opto_last_measure_time_ok = true;
 	}
 	opto_last_measure_time = time;
+	opto_timeout_counter = 0;
+}
+
+ISR(TIMER0_COMPA_vect) {
+	// Timer0 on 10 ms
+
+	opto_timeout_counter++;
+	if (opto_timeout_counter >= OPTO_TIMEOUT) {
+		opto_timeout_counter = 0;
+
+		if (opto_last_measure_time_ok) {
+			TIMSK1 &= ~(1 << ICIE1); // temporary disable ICP capture
+			opto_hist_reset();
+			TIMSK1 |= 1 << ICIE1; // enable ICP capture
+		}
+	}
 }
 
 void send_speed(uint16_t speed) {
@@ -111,7 +129,7 @@ void send_speed(uint16_t speed) {
 	uart_putstr(data);
 }
 
-void hist_reset() {
+void opto_hist_reset() {
 	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
 		opto_hist[i] = 0xFFFF;
 	opto_hist_next_index = 0;
