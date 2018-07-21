@@ -73,9 +73,9 @@ void opto_init_interrupt() {
 }
 
 void opto_init_icp() {
-	// PD0 is input by default
-	// PD0 pull-up is disabled by default (pullup is hardware-based)
-	// This function enabled ICP measurement and setups Timer1
+	// PB0 is input by default
+	// PB0 pull-up is disabled by default (pullup is hardware-based)
+	// This function enables ICP measurement and setups Timer1
 
 	TIMSK1 |= 1 << ICIE1; // enable ICP capture
 	TCCR1B |= 1 << ICES1; // capture rising edge
