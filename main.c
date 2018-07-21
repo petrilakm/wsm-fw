@@ -13,11 +13,17 @@
 
 int main();
 void init();
+void send_speed(uint16_t speed);
+
 void opto_init_interrupt();
 void opto_init_icp();
 void opto_hist_reset();
 uint16_t opto_get_interval();
-void send_speed(uint16_t speed);
+
+void bat_start_measure();
+void bat_init_measure();
+
+void shutdown_all();
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -28,6 +34,10 @@ volatile int8_t opto_hist_next_index = 0;
 volatile uint16_t opto_last_measure_time;
 volatile bool opto_last_measure_time_ok = false;
 volatile uint8_t opto_timeout_counter = 0;
+
+///////////////////////////////////////////////////////////////////////////////
+
+const uint16_t BAT_THRESHOLD = 100; // TODO
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -43,6 +53,7 @@ int main() {
 
 void init() {
 	leds_init();
+	bat_init_measure();
 	uart_init();
 
 	led_red_on();
@@ -61,6 +72,10 @@ void init() {
 	TCCR0B |= 0x04; // prescaler 256×
 	TIMSK0 |= 1 << OCIE0A; // enable interrupt on compare match A
 	OCR0A = 71; // set compare match A to match 10 ms
+
+	// configure shutdown pin as output
+	PORTB |= 1 << PORTB2; // pin high
+	DDRB |= 1 << PORTB2; // pin output
 
 	sei(); // enable interrupts globally
 }
@@ -141,4 +156,38 @@ uint16_t opto_get_interval() {
 	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
 		sum += opto_hist[i];
 	return (uint16_t)(sum / OPTO_HIST_LEN);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void bat_init_measure() {
+	// Initialize battery measurement.
+	// This function sets ADC properties. No change should be done to these
+	// registers in any other function in future!
+	ADMUX |= (1 << REFS0) | (1 << REFS1); // Use internal 1V1 reference
+	ADMUX |= 0x0; // use ADC0
+	ADCSRA |= 1 << ADIF; // enable ADC interrupt
+	ADCSRA |= 0x5; // prescaler 16× (115 kHz is in 50-200 kHz)
+}
+
+void bat_start_measure() {
+	// Measures voltage on battery.
+	// Beware: no pins PC* could be switched during measurement! (LEDs)
+	ADCSRA |= 1 << ADEN; // enable ADC!
+	ADCSRA |= 1 << ADSC; // start conversion
+}
+
+ISR(ADC_vect) {
+	uint16_t value = ADCL;
+	value |= (ADCH << 8);
+
+	if (value < BAT_THRESHOLD) {
+		shutdown_all();
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void shutdown_all() {
+	PORTB &= ~(1 << PORTB2);
 }
