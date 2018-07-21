@@ -13,8 +13,20 @@
 
 int main();
 void init();
-void init_opto_interrupt();
-void init_opto_icp();
+void opto_init_interrupt();
+void opto_init_icp();
+void opto_init_timeout();
+void opto_hist_reset();
+uint16_t opto_get_interval();
+void send_speed(uint16_t speed);
+
+///////////////////////////////////////////////////////////////////////////////
+
+#define OPTO_HIST_LEN 8u
+volatile uint16_t opto_hist[OPTO_HIST_LEN] = {0xFFFF, };
+volatile int8_t opto_hist_next_index = 0;
+volatile uint16_t opto_last_measure_time;
+volatile bool opto_last_measure_time_ok = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +34,9 @@ int main() {
 	init();
 
 	while (true) {
+		// send current speed to PC each 100 ms
+		_delay_ms(100);
+		send_speed(opto_get_interval());
 	}
 }
 
@@ -39,19 +54,20 @@ void init() {
 	led_yellow_off();
 	led_green_off();
 
-	init_opto_icp();
+	opto_init_icp();
+	opto_init_timeout();
 
 	sei(); // enable interrupts globally
 }
 
-void init_opto_interrupt() {
+void opto_init_interrupt() {
 	// PD0 is input by default
 	// PD0 pull-up is disabled by default (pullup is hardware-based)
 	EICRA |= 0x03; // configure INT0 interrupt on rising edge
 	EIMSK |= 1 << INT0; // enable INT0
 }
 
-void init_opto_icp() {
+void opto_init_icp() {
 	// PD0 is input by default
 	// PD0 pull-up is disabled by default (pullup is hardware-based)
 	// This function enabled ICP measurement and setups Timer1
@@ -62,13 +78,24 @@ void init_opto_icp() {
 	TCCR1B |= 0x02; // prescaler 8×
 }
 
+void opto_init_timeout() {
+}
+
 ISR(INT0_vect) {
 	led_yellow_toggle();
 }
 
 ISR(TIMER1_CAPT_vect) {
-	uint16_t measured = ICR1L; // must read low byte first
-	measured |= ICR1H << 8;
+	uint16_t time = ICR1L; // must read low byte first
+	time |= ICR1H << 8;
+
+	if (opto_last_measure_time_ok) {
+		opto_hist[opto_hist_next_index] = time - opto_last_measure_time; // TODO: check for behavior on overflow
+		opto_hist_next_index = (opto_hist_next_index + 1) % OPTO_HIST_LEN;
+	} else {
+		opto_last_measure_time_ok = true;
+	}
+	opto_last_measure_time = time;
 }
 
 void send_speed(uint16_t speed) {
@@ -82,4 +109,18 @@ void send_speed(uint16_t speed) {
 	data[5] = 0;
 
 	uart_putstr(data);
+}
+
+void hist_reset() {
+	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
+		opto_hist[i] = 0xFFFF;
+	opto_hist_next_index = 0;
+	opto_last_measure_time_ok = false;
+}
+
+uint16_t opto_get_interval() {
+	uint32_t sum = 0;
+	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
+		sum += opto_hist[i];
+	return (uint16_t)(sum / OPTO_HIST_LEN);
 }
