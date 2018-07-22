@@ -114,6 +114,8 @@ ISR(TIMER1_CAPT_vect) {
 	}
 	opto_last_measure_time = time;
 	opto_timeout_counter = 0;
+
+	led_yellow_toggle();
 }
 
 ISR(TIMER0_COMPA_vect) {
