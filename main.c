@@ -107,7 +107,7 @@ ISR(TIMER1_CAPT_vect) {
 	time |= ICR1H << 8;
 
 	if (opto_last_measure_time_ok) {
-		opto_hist[opto_hist_next_index] = time - opto_last_measure_time; // TODO: check for behavior on overflow
+		opto_hist[opto_hist_next_index] = time - opto_last_measure_time;
 		opto_hist_next_index = (opto_hist_next_index + 1) % OPTO_HIST_LEN;
 	} else {
 		opto_last_measure_time_ok = true;
