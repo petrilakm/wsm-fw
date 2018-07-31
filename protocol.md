@@ -32,11 +32,11 @@ is XOR of *Header byte, Data byte 1 .. Data byte n*.
 Speed measured. interval = (INTH << 8) + INTL
 
 ```
-speed = (PI * wheelDiameter * F\_CPU * 3.6 * scale) / HOLE\_COUNT * PSK * interval
+speed = (PI * wheelDiameter * F_CPU * 3.6 * scale) / HOLE_COUNT * PSK * interval
 ```
 
- * `F\_CPU` = 3686400
- * `HOLE\_COUNT` = 8
+ * `F_CPU` = 3686400
+ * `HOLE_COUNT` = 8
  * `PSK` = 64
  * `wheelDiameter` is in mm
  * `scale` is `120` for TT, `87` for H0 etc
