@@ -23,10 +23,26 @@ is XOR of *Header byte, Data byte 1 .. Data byte n*.
 
 ## WSM → PC messages
 
-| Header byte | Data byte 1 | Data 2     | Data 3 | Data 4 |                 Description                     |
-|-------------|-------------|------------|--------|--------|-------------------------------------------------|
-| 0x03        | 0x01        | INTH       | INTL   | XOR    | Speed measured. interval = (INTH << 8) + INTL   |
-| 0x03        | 0x10        | 0bC00000HH | L      | XOR    | Battery info. value = (HH << 8) + L, C=critical |
+### Speed
+
+| Header byte | Data byte 1 | Data 2     | Data 3 | Data 4 |
+|-------------|-------------|------------|--------|--------|
+| 0x03        | 0x01        | INTH       | INTL   | XOR    |
+
+Speed measured. interval = (INTH << 8) + INTL
+
+## Battery voltage
+
+| Header byte | Data byte 1 | Data 2     | Data 3 | Data 4 |
+|-------------|-------------|------------|--------|--------|
+| 0x03        | 0x10        | 0bC00000HH | L      | XOR    |
+
+Battery voltage info.
+
+ * voltage = (HH << 8) + L
+ * critical bit = C
+
+When critical bit is set, device is going to shutdown in a few microseconds.
 
 ## PC → WSM messages
 
