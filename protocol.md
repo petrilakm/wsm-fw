@@ -54,6 +54,8 @@ Battery voltage info.
 
 When critical bit is set, device is going to shutdown in a few microseconds.
 
+Real voltage [V] = `(voltage / 1024) * 4.84`.
+
 ## PC → WSM messages
 
 No.
