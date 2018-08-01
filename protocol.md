@@ -25,7 +25,7 @@ is XOR of *Header byte, Data byte 1 .. Data byte n*.
 
 ### Speed
 
-| Header byte | Data byte 1 | Data 2     | Data 3 | Data 4 |
+| Header byte | Data byte 1 | Data 2     | Data 3 | XOR    |
 |-------------|-------------|------------|--------|--------|
 | 0x03        | 0x01        | INTH       | INTL   | XOR    |
 
@@ -43,9 +43,9 @@ speed = (PI * wheelDiameter * F_CPU * 3.6 * scale) / HOLE_COUNT * PSK * interval
 
 ## Battery voltage
 
-| Header byte | Data byte 1 | Data 2     | Data 3 | Data 4 |
-|-------------|-------------|------------|--------|--------|
-| 0x03        | 0x10        | 0bC00000HH | L      | XOR    |
+| Header byte | Data byte 1 | Data 2 | XOR    |
+|-------------|-------------|--------|--------|
+| 0x12        | 0bC00000HH  | L      | XOR    |
 
 Battery voltage info.
 
