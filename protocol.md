@@ -33,7 +33,7 @@ is XOR of *Header byte, Data byte 1 .. Data byte n*.
 
 | Header byte | Data byte 1 | Data 2 | Data 3 | Data 4 | XOR    |
 |-------------|-------------|--------|--------|--------|--------|
-| 0x84        | 0x81        | INTHH  | INTH   | INTL   | XOR    |
+| 0x94        | 0x81        | INTHH  | INTH   | INTL   | XOR    |
 
 Speed measured. interval = (INTHH << 14) + (INTH << 7) + INTL
 
