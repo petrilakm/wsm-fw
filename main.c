@@ -14,6 +14,7 @@
 int main();
 void init();
 void send_speed(uint16_t speed);
+void send_battery_voltage(uint16_t voltage, bool critical);
 
 void opto_init_interrupt();
 void opto_init_icp();
@@ -49,7 +50,7 @@ int main() {
 	while (true) {
 		// send current speed to PC each 100 ms
 		_delay_ms(100);
-		send_speed(opto_get_interval());
+		//send_speed(opto_get_interval());
 
 		bat_timer++;
 		if (bat_timer >= BAT_TIMEOUT) {
@@ -193,11 +194,27 @@ void bat_start_measure() {
 ISR(ADC_vect) {
 	uint16_t value = ADCL;
 	value |= (ADCH << 8);
+
+	send_battery_voltage(value, value < BAT_THRESHOLD);
 	led_green_toggle();
 
 	if (value < BAT_THRESHOLD) {
+		send_battery_voltage(value, true);
+		send_battery_voltage(value, true);
 		shutdown_all();
 	}
+}
+
+void send_battery_voltage(uint16_t voltage, bool critical) {
+	char data[5];
+
+	data[0] = 0xA2;
+	data[1] = (voltage >> 7) | (critical << 6) | 0x80;
+	data[2] = (voltage & 0x7F) | 0x80;
+	data[3] = 0x80 | (0x22 ^ (data[1] & 0x7F) ^ (data[2] & 0x7F));
+	data[4] = 0;
+
+	uart_putstr(data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -205,3 +222,5 @@ ISR(ADC_vect) {
 void shutdown_all() {
 	PORTB &= ~(1 << PORTB2);
 }
+
+///////////////////////////////////////////////////////////////////////////////
