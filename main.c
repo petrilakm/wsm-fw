@@ -134,14 +134,16 @@ ISR(TIMER0_COMPA_vect) {
 }
 
 void send_speed(uint16_t speed) {
-	char data[6];
+	char data[7];
 
-	data[0] = 0x03;
-	data[1] = 0x01;
-	data[2] = speed >> 8;
-	data[3] = speed & 0xFF;
-	data[4] = 0x03 ^ 0x01 ^ data[2] ^ data[3];
-	data[5] = 0;
+	data[0] = 0x83;
+	data[1] = 0x81;
+	data[2] = (speed >> 14) | 0x80;
+	data[3] = ((speed >> 7) & 0x7F) | 0x80;
+	data[4] = (speed & 0x7F) | 0x80;
+	data[5] = 0x80 | (0x03 ^ 0x01 ^ (data[2] & 0x7F) ^ (data[3] & 0x7F) ^
+	                  (data[4] & 0x7F));
+	data[6] = 0;
 
 	uart_putstr(data);
 }
