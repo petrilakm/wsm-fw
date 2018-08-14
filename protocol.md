@@ -55,12 +55,12 @@ speed = (PI * wheelDiameter * F_CPU * 3.6 * scale) / HOLE_COUNT * PSK * interval
 
 Battery voltage info.
 
- * voltage = (HH << 7) + L
+ * voltage = (HHH << 7) + L
  * critical bit = C
 
 When critical bit is set, device is going to shutdown in a few microseconds.
 
-Real voltage [V] = `(voltage / 1024) * 4.84`.
+Real voltage [V] = `(voltage / 1024) * 4.4`.
 
 ## PC → WSM messages
 
