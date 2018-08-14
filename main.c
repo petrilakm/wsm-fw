@@ -136,7 +136,7 @@ ISR(TIMER0_COMPA_vect) {
 void send_speed(uint16_t speed) {
 	char data[7];
 
-	data[0] = 0x83;
+	data[0] = 0x84;
 	data[1] = 0x81;
 	data[2] = (speed >> 14) | 0x80;
 	data[3] = ((speed >> 7) & 0x7F) | 0x80;
