@@ -41,12 +41,12 @@
 
 
 # MCU name
-MCU = atmega328
+MCU = atmega328p
 
 
 # Processor fuses.
 #     Define fuses for processor, flash by calling 'make fuses'
-FUSES = -U lfuse:w:0xd0:m -U hfuse:w:0xd9:m -U efuse:w:0xfd:m
+FUSES = -U lfuse:w:0xed:m -U hfuse:w:0xd9:m -U efuse:w:0xfd:m
 
 
 # Processor frequency.
@@ -310,10 +310,6 @@ AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
-
-# fuses (external oscilator)
-AVRDUDE_FLAGS += -U lfuse:w:0xFF:m -U hfuse:w:0xD9:m
-
 
 #---------------- Debugging Options ----------------
 
