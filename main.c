@@ -95,7 +95,7 @@ void opto_init_icp() {
 	TIMSK1 |= 1 << ICIE1; // enable ICP capture
 	TCCR1B |= 1 << ICES1; // capture rising edge
 	TCCR1B |= 1 << ICNC1; // enable noise canceler on ICP
-	TCCR1B |= 0x02; // prescaler 8×
+	TCCR1B |= 0x03; // prescaler 64×
 }
 
 ISR(INT0_vect) {
