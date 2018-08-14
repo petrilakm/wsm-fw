@@ -43,11 +43,20 @@ const uint16_t BAT_THRESHOLD = 814; // 3.5 V = 814, 4.2 V = 977
 
 int main() {
 	init();
+	uint8_t bat_timer = 0;
+	#define BAT_TIMEOUT 50 // 50 ms
 
 	while (true) {
 		// send current speed to PC each 100 ms
 		_delay_ms(100);
 		send_speed(opto_get_interval());
+
+		bat_timer++;
+		if (bat_timer >= BAT_TIMEOUT) {
+			led_green_toggle();
+			bat_start_measure();
+			bat_timer = 0;
+		}
 	}
 }
 
@@ -170,7 +179,7 @@ void bat_init_measure() {
 	// registers in any other function in future!
 	ADMUX |= (1 << REFS0) | (1 << REFS1); // Use internal 1V1 reference
 	ADMUX |= 0x0; // use ADC0
-	ADCSRA |= 1 << ADIF; // enable ADC interrupt
+	ADCSRA |= 1 << ADIE; // enable ADC interrupt
 	ADCSRA |= 0x5; // prescaler 16× (115 kHz is in 50-200 kHz)
 }
 
@@ -184,6 +193,7 @@ void bat_start_measure() {
 ISR(ADC_vect) {
 	uint16_t value = ADCL;
 	value |= (ADCH << 8);
+	led_green_toggle();
 
 	if (value < BAT_THRESHOLD) {
 		shutdown_all();
