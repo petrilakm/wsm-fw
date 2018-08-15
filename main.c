@@ -50,7 +50,7 @@ int main() {
 	while (true) {
 		// send current speed to PC each 100 ms
 		_delay_ms(100);
-		//send_speed(opto_get_interval());
+		send_speed(opto_get_interval());
 
 		bat_timer++;
 		if (bat_timer >= BAT_TIMEOUT) {
