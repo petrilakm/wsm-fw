@@ -15,6 +15,7 @@ int main();
 void init();
 void send_speed(uint16_t speed);
 void send_battery_voltage(uint16_t voltage, bool critical);
+void send_distance(uint32_t distance);
 
 void opto_init_icp();
 void opto_hist_reset();
@@ -34,6 +35,7 @@ volatile int8_t opto_hist_next_index = 0;
 volatile uint16_t opto_last_measure_time;
 volatile bool opto_last_measure_time_ok = false;
 volatile uint8_t opto_timeout_counter = 0;
+volatile uint32_t opto_counter = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -45,7 +47,9 @@ const uint16_t BAT_LOW = 760;
 int main() {
 	init();
 	uint8_t bat_timer = 0;
-	#define BAT_TIMEOUT 50 // 50 ms
+	uint8_t dist_timer = 0;
+	#define BAT_TIMEOUT 50 // 5 s
+	#define DISTANCE_TIMEOUT 5 // 500 ms
 
 	while (true) {
 		// send current speed to PC each 100 ms
@@ -54,10 +58,17 @@ int main() {
 
 		bat_timer++;
 		if (bat_timer >= BAT_TIMEOUT) {
-			// send battery voltage to PC each 5 s
+			// send battery voltage & speed counter mode to PC each 5 s
 			led_green_toggle();
 			bat_start_measure();
 			bat_timer = 0;
+		}
+
+		dist_timer++;
+		if (dist_timer == DISTANCE_TIMEOUT) {
+			// send diatnce to PC
+			send_distance(opto_counter);
+			dist_timer = 0;
 		}
 	}
 }
@@ -103,11 +114,8 @@ void opto_init_icp() {
 	TCCR1B |= 0x03; // prescaler 64×
 }
 
-ISR(INT0_vect) {
-	led_yellow_toggle();
-}
-
 ISR(TIMER1_CAPT_vect) {
+	// Optosensor rising edge interrupt
 	uint16_t time = ICR1L; // must read low byte first
 	time |= ICR1H << 8;
 
@@ -121,6 +129,7 @@ ISR(TIMER1_CAPT_vect) {
 	opto_timeout_counter = 0;
 
 	led_yellow_toggle();
+	opto_counter++;
 }
 
 ISR(TIMER0_COMPA_vect) {
@@ -165,6 +174,24 @@ uint16_t opto_get_interval() {
 	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
 		sum += opto_hist[i];
 	return (uint16_t)(sum / OPTO_HIST_LEN);
+}
+
+void send_distance(uint32_t distance) {
+	char data[9];
+
+	data[0] = 0x96;
+	data[1] = 0x82;
+	data[2] = (distance >> 28) | 0x80;
+	data[3] = (distance >> 21) | 0x80;
+	data[4] = (distance >> 14) | 0x80;
+	data[5] = (distance >> 7) | 0x80;
+	data[6] = distance | 0x80;
+
+	data[7] = 0x80 | (0x16 ^ 0x02 ^ (data[2] & 0x7F) ^ (data[3] & 0x7F) ^
+	                 (data[4] & 0x7F) ^ (data[5] & 0x7F) ^ (data[6] & 0x7F));
+	data[8] = 0;
+
+	uart_putstr(data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
