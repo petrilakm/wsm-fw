@@ -30,7 +30,7 @@ void shutdown_all();
 
 #define OPTO_HIST_LEN 8u
 #define OPTO_TIMEOUT 50 // 500 ms
-volatile uint16_t opto_hist[OPTO_HIST_LEN] = {0xFFFF, };
+volatile uint16_t opto_hist[OPTO_HIST_LEN];
 volatile int8_t opto_hist_next_index = 0;
 volatile uint16_t opto_last_measure_time;
 volatile bool opto_last_measure_time_ok = false;
@@ -64,6 +64,7 @@ int main() {
 void init() {
 	leds_init();
 	bat_init_measure();
+	opto_hist_reset();
 	uart_init();
 
 	led_red_on();
