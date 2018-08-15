@@ -38,7 +38,8 @@ volatile uint8_t opto_timeout_counter = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const uint16_t BAT_THRESHOLD = 814; // 3.5 V = 814, 4.2 V = 977
+const uint16_t BAT_CRITICAL = 754; // 3.5 V = 754
+const uint16_t BAT_LOW = 760;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -196,10 +197,15 @@ ISR(ADC_vect) {
 	uint16_t value = ADCL;
 	value |= (ADCH << 8);
 
-	send_battery_voltage(value, value < BAT_THRESHOLD);
+	if (value < BAT_LOW)
+		led_red_on();
+	else
+		led_red_off();
+
+	send_battery_voltage(value, value < BAT_CRITICAL);
 	led_green_toggle();
 
-	if (value < BAT_THRESHOLD) {
+	if (value < BAT_CRITICAL) {
 		send_battery_voltage(value, true);
 		send_battery_voltage(value, true);
 		shutdown_all();
