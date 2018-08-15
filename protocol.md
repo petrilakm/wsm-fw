@@ -35,7 +35,8 @@ is XOR of *Header byte, Data byte 1 .. Data byte n*.
 |-------------|-------------|--------|--------|--------|--------|
 | 0x94        | 0x81        | INTHH  | INTH   | INTL   | XOR    |
 
-Speed measured. interval = (INTHH << 14) + (INTH << 7) + INTL
+Speed measured. interval = ((INTHH & 0x03) << 14) | ((INTH & 0x7F) << 7) | (INTL & 0x7F)
+This packet is sent each 100 ms.
 
 ```
 speed = (PI * wheelDiameter * F_CPU * 3.6 * scale) / HOLE_COUNT * PSK * interval
@@ -44,8 +45,23 @@ speed = (PI * wheelDiameter * F_CPU * 3.6 * scale) / HOLE_COUNT * PSK * interval
  * `F_CPU` = 3686400
  * `HOLE_COUNT` = 8
  * `PSK` = 64
- * `wheelDiameter` is in mm
+ * `wheelDiameter` is in m
  * `scale` is `120` for TT, `87` for H0 etc
+
+### Speed Counter Mode
+
+| Header byte | Data byte 1 | Data 2 | Data 3 | ...   | XOR    |
+|-------------|-------------|--------|--------|-------|--------|
+| 0x96        | 0x82        | C1     | C2     | C3-5  | XOR    |
+
+Packet contains number of elapsed spaces till last boot. This value may
+overflow. This packet is sent each 500 ms.
+
+`elapsed` in `uint32_t`.
+
+```
+elapsed = C5 & 0x7F | (C4 & 0x7F) << 7 | (C3 & 0x7F) << 14 | (C2 & 0x7F) << 21 | (C1 & 0x0F) << 28
+```
 
 ## Battery voltage
 
