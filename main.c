@@ -55,6 +55,7 @@ int main() {
 
 		bat_timer++;
 		if (bat_timer >= BAT_TIMEOUT) {
+			// send battery voltage to PC each 5 s
 			led_green_toggle();
 			bat_start_measure();
 			bat_timer = 0;
