@@ -16,7 +16,6 @@ void init();
 void send_speed(uint16_t speed);
 void send_battery_voltage(uint16_t voltage, bool critical);
 
-void opto_init_interrupt();
 void opto_init_icp();
 void opto_hist_reset();
 uint16_t opto_get_interval();
@@ -91,13 +90,6 @@ void init() {
 	DDRB |= 1 << PORTB2; // pin output
 
 	sei(); // enable interrupts globally
-}
-
-void opto_init_interrupt() {
-	// PD0 is input by default
-	// PD0 pull-up is disabled by default (pullup is hardware-based)
-	EICRA |= 0x03; // configure INT0 interrupt on rising edge
-	EIMSK |= 1 << INT0; // enable INT0
 }
 
 void opto_init_icp() {
