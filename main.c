@@ -92,9 +92,10 @@ void init() {
 	opto_init_icp();
 
 	// Setup main timer0 on 10 ms
+	TCCR0A |= 1 << WGM01; // CTC mode
 	TCCR0B |= 0x04; // prescaler 256×
 	TIMSK0 |= 1 << OCIE0A; // enable interrupt on compare match A
-	OCR0A = 71; // set compare match A to match 10 ms
+	OCR0A = 142; // set compare match A to match 10 ms
 
 	// configure shutdown pin as output
 	PORTB |= 1 << PORTB2; // pin high
