@@ -28,15 +28,21 @@ void shutdown_all();
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define OPTO_HIST_LEN 8u
+typedef struct {
+	uint32_t ticks_sum;
+	uint16_t ticks_count;
+} TicksHistoryItem;
+
+#define OPTO_HIST_LEN 10u
 #define OPTO_TIMEOUT 50 // 500 ms
 #define OPTO_MIN_TICKS 50u // minimal 50 ticks (~ 1500 kmph in TT)
-volatile uint16_t opto_hist[OPTO_HIST_LEN];
-volatile int8_t opto_hist_next_index = 0;
+volatile TicksHistoryItem opto_hist[OPTO_HIST_LEN];
+volatile int8_t opto_hist_index = 0;
 volatile uint16_t opto_last_measure_time;
 volatile bool opto_last_measure_time_ok = false;
 volatile uint8_t opto_timeout_counter = 0;
 volatile uint32_t opto_counter = 0;
+volatile bool data_sending = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -53,8 +59,9 @@ int main() {
 	#define DISTANCE_TIMEOUT 5 // 500 ms
 
 	while (true) {
-		// send current speed to PC each 100 ms
 		_delay_ms(100);
+
+		// send current speed to PC each 100 ms
 		send_speed(opto_get_interval());
 
 		bat_timer++;
@@ -67,7 +74,7 @@ int main() {
 
 		dist_timer++;
 		if (dist_timer == DISTANCE_TIMEOUT) {
-			// send diatnce to PC
+			// send distance to PC
 			send_distance(opto_counter);
 			dist_timer = 0;
 		}
@@ -127,8 +134,8 @@ ISR(TIMER1_CAPT_vect) {
 			// protection against fast ticks
 			opto_last_measure_time_ok = false;
 		} else {
-			opto_hist[opto_hist_next_index] = delta;
-			opto_hist_next_index = (opto_hist_next_index + 1) % OPTO_HIST_LEN;
+			opto_hist[opto_hist_index].ticks_count++;
+			opto_hist[opto_hist_index].ticks_sum += delta;
 		}
 	} else {
 		opto_last_measure_time_ok = true;
@@ -142,6 +149,8 @@ ISR(TIMER1_CAPT_vect) {
 
 ISR(TIMER0_COMPA_vect) {
 	// Timer0 on 10 ms
+	#define SPEED_TIMEOUT 10u // 100 ms
+	volatile static uint8_t speed_timer = 0;
 
 	opto_timeout_counter++;
 	if (opto_timeout_counter >= OPTO_TIMEOUT) {
@@ -150,6 +159,17 @@ ISR(TIMER0_COMPA_vect) {
 		TIMSK1 &= ~(1 << ICIE1); // temporary disable ICP capture
 		opto_hist_reset();
 		TIMSK1 |= 1 << ICIE1; // enable ICP capture
+	}
+
+	speed_timer++;
+	if (speed_timer >= SPEED_TIMEOUT) {
+		// go to new frame of opto_hist each 100 ms
+		speed_timer = 0;
+
+		uint8_t new_opto_hist_index = (opto_hist_index + 1) % OPTO_HIST_LEN;
+		opto_hist[new_opto_hist_index].ticks_count = 0;
+		opto_hist[new_opto_hist_index].ticks_sum = 0;
+		opto_hist_index = new_opto_hist_index;
 	}
 }
 
@@ -170,16 +190,22 @@ void send_speed(uint16_t speed) {
 
 void opto_hist_reset() {
 	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
-		opto_hist[i] = 0xFFFF;
-	opto_hist_next_index = 0;
+		opto_hist[i].ticks_count = 0;
 	opto_last_measure_time_ok = false;
 }
 
 uint16_t opto_get_interval() {
 	uint32_t sum = 0;
-	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
-		sum += opto_hist[i];
-	return (uint16_t)(sum / OPTO_HIST_LEN);
+	uint16_t count = 0;
+	for (size_t i = 0; i < OPTO_HIST_LEN; i++) {
+		sum += opto_hist[i].ticks_sum;
+		count += opto_hist[i].ticks_count;
+	}
+
+	if (count == 0)
+		return 0xFFFF;
+
+	return (uint16_t)(sum / count);
 }
 
 void send_distance(uint32_t distance) {
