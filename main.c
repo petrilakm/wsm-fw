@@ -30,6 +30,7 @@ void shutdown_all();
 
 #define OPTO_HIST_LEN 8u
 #define OPTO_TIMEOUT 50 // 500 ms
+#define OPTO_MIN_TICKS 50u // minimal 50 ticks (~ 1500 kmph in TT)
 volatile uint16_t opto_hist[OPTO_HIST_LEN];
 volatile int8_t opto_hist_next_index = 0;
 volatile uint16_t opto_last_measure_time;
@@ -121,8 +122,14 @@ ISR(TIMER1_CAPT_vect) {
 	time |= ICR1H << 8;
 
 	if (opto_last_measure_time_ok) {
-		opto_hist[opto_hist_next_index] = time - opto_last_measure_time;
-		opto_hist_next_index = (opto_hist_next_index + 1) % OPTO_HIST_LEN;
+		uint16_t delta = time - opto_last_measure_time;
+		if (delta < OPTO_MIN_TICKS) {
+			// protection against fast ticks
+			opto_last_measure_time_ok = false;
+		} else {
+			opto_hist[opto_hist_next_index] = delta;
+			opto_hist_next_index = (opto_hist_next_index + 1) % OPTO_HIST_LEN;
+		}
 	} else {
 		opto_last_measure_time_ok = true;
 	}
@@ -140,11 +147,9 @@ ISR(TIMER0_COMPA_vect) {
 	if (opto_timeout_counter >= OPTO_TIMEOUT) {
 		opto_timeout_counter = 0;
 
-		if (opto_last_measure_time_ok) {
-			TIMSK1 &= ~(1 << ICIE1); // temporary disable ICP capture
-			opto_hist_reset();
-			TIMSK1 |= 1 << ICIE1; // enable ICP capture
-		}
+		TIMSK1 &= ~(1 << ICIE1); // temporary disable ICP capture
+		opto_hist_reset();
+		TIMSK1 |= 1 << ICIE1; // enable ICP capture
 	}
 }
 
