@@ -42,7 +42,10 @@ volatile uint16_t opto_last_measure_time;
 volatile bool opto_last_measure_time_ok = false;
 volatile uint8_t opto_timeout_counter = 0;
 volatile uint32_t opto_counter = 0;
-volatile bool data_sending = false;
+volatile bool should_shutdown = false;
+volatile bool bat_send_voltage = false;
+volatile uint16_t bat_voltage;
+volatile bool bat_first_measure = true;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -53,6 +56,7 @@ const uint16_t BAT_LOW = 760;
 
 int main() {
 	init();
+	bat_start_measure();
 	uint8_t bat_timer = 0;
 	uint8_t dist_timer = 0;
 	#define BAT_TIMEOUT 50 // 5 s
@@ -67,7 +71,7 @@ int main() {
 		bat_timer++;
 		if (bat_timer >= BAT_TIMEOUT) {
 			// send battery voltage & speed counter mode to PC each 5 s
-			led_green_toggle();
+			led_green_on();
 			bat_start_measure();
 			bat_timer = 0;
 		}
@@ -77,6 +81,25 @@ int main() {
 			// send distance to PC
 			send_distance(opto_counter);
 			dist_timer = 0;
+		}
+
+		if (bat_send_voltage) {
+			bat_send_voltage = false;
+			send_battery_voltage(bat_voltage, bat_voltage < BAT_CRITICAL);
+		}
+
+		if (should_shutdown) {
+			send_battery_voltage(bat_voltage, true);
+			send_battery_voltage(bat_voltage, true);
+			should_shutdown = false;
+
+			for (size_t i = 0; i < 3; i++) {
+				led_red_off();
+				_delay_ms(200);
+				led_red_on();
+				_delay_ms(100);
+			}
+			shutdown_all();
 		}
 	}
 }
@@ -248,20 +271,20 @@ void bat_start_measure() {
 ISR(ADC_vect) {
 	uint16_t value = ADCL;
 	value |= (ADCH << 8);
+	bat_voltage = value;
 
-	if (value < BAT_LOW)
+	if (value < BAT_LOW && (value > BAT_CRITICAL || bat_first_measure))
 		led_red_on();
 	else
 		led_red_off();
 
-	send_battery_voltage(value, value < BAT_CRITICAL);
-	led_green_toggle();
+	bat_send_voltage = true;
+	led_green_off();
 
-	if (value < BAT_CRITICAL) {
-		send_battery_voltage(value, true);
-		send_battery_voltage(value, true);
-		shutdown_all();
-	}
+	if (value < BAT_CRITICAL && !bat_first_measure)
+		should_shutdown = true;
+
+	bat_first_measure = false;
 }
 
 void send_battery_voltage(uint16_t voltage, bool critical) {
