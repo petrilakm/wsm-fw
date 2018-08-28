@@ -49,8 +49,8 @@ volatile bool bat_first_measure = true;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const uint16_t BAT_CRITICAL = 754; // 3.5 V = 754
-const uint16_t BAT_LOW = 760;
+const uint16_t BAT_CRITICAL = 783; // 3.5 V
+const uint16_t BAT_LOW = 794; // 3.55 V
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -255,7 +255,7 @@ void bat_init_measure() {
 	// Initialize battery measurement.
 	// This function sets ADC properties. No change should be done to these
 	// registers in any other function in future!
-	ADMUX |= (1 << REFS0) | (1 << REFS1); // Use internal 1V1 reference
+	ADMUX |= (1 << REFS0); // AVCC with external capacitor at AREF pin
 	ADMUX |= 0x0; // use ADC0
 	ADCSRA |= 1 << ADIE; // enable ADC interrupt
 	ADCSRA |= 0x5; // prescaler 16× (115 kHz is in 50-200 kHz)
