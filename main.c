@@ -35,7 +35,7 @@ typedef struct {
 
 #define OPTO_HIST_LEN 10u
 #define OPTO_TIMEOUT 50 // 500 ms
-#define OPTO_MIN_TICKS 50u // minimal 50 ticks (~ 1500 kmph in TT)
+#define OPTO_MIN_TICKS 250u // minimal 250 ticks (~ 300 kmph in TT)
 volatile TicksHistoryItem opto_hist[OPTO_HIST_LEN];
 volatile int8_t opto_hist_index = 0;
 volatile uint16_t opto_last_measure_time;
