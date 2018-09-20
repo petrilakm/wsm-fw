@@ -212,8 +212,10 @@ void send_speed(uint16_t speed) {
 }
 
 void opto_hist_reset() {
-	for (size_t i = 0; i < OPTO_HIST_LEN; i++)
+	for (size_t i = 0; i < OPTO_HIST_LEN; i++) {
 		opto_hist[i].ticks_count = 0;
+		opto_hist[i].ticks_sum = 0;
+	}
 	opto_last_measure_time_ok = false;
 }
 
