@@ -1,12 +1,12 @@
-# WSM-FW: A Wiress SpeedoMeter firmware
+# WSM-FW: A Wireless SpeedoMeter firmware
 
 WSM is a model railroad car which measures speed of a train and transmits it
 via Bluetooth. This repository contains firmware to the device`s main processor
-ATmega328.
+ATmega328p.
 
 ## Build & requirements
 
-This formware is developed in C language, compiled via `avr-gcc` with help
+This firmware is developed in C language, compiled via `avr-gcc` with help
 of `make`. You may also find tools like `avrdude` helpful.
 
 Hex files are available in *Releases* section.
