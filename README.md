@@ -20,6 +20,7 @@ Currently, EEPROM is not used.
 
 ## Resources
 
+ * [Communication protocol](protocol.md)
  * [PCB](https://github.com/kmzbrnoI/wsm-pcb)
  * [Software to PC](https://github.com/kmzbrnoI/wsm-speed-reader)
 
