@@ -44,6 +44,20 @@ Red, yellow and green LED should flash at start.
    level in critical, the red LED flashes 3 times and the device shuts itself
    down.
 
+## Function overview
+
+The main core of this FW is measuring of speed. Speed is measured via special
+*ICP capture* feature of Atmega328 processor. The processor measures period
+between two rising edges at optosensor.
+
+The processor remembers count and length of all ticks in last second separated
+into parts of 100 ms. The speed is sent to PC each 100 ms and is calculated
+as average tick length over last 1 s. This method is known as *sliding window*
+with total length of 1 s and each frame of length 100 ms.
+
+Plus, there is another mechnism, which sets speed to *0* when there is no
+pulse in last 500 ms.
+
 ## Authors
 
  * Jan Horacek ([jan.horacek@kmz-brno.cz](mailto:jan.horacek@kmz-brno.cz))
