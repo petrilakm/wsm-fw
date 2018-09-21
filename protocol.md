@@ -1,4 +1,4 @@
-# WSM ↔ PC communication protocol
+# WSM ↔ PC communication protocol v1.0
 
 ## Overview
 
