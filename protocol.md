@@ -58,9 +58,10 @@ Packet contains number of elapsed spaces till last boot. This value may
 overflow. This packet is sent each 500 ms.
 
 `elapsed` in `uint32_t`.
-
+:x
 ```
 elapsed = C5 & 0x7F | (C4 & 0x7F) << 7 | (C3 & 0x7F) << 14 | (C2 & 0x7F) << 21 | (C1 & 0x0F) << 28
+real_distance = delta_elapsed * pi * wheelDiameter / HOLE_COUNT
 ```
 
 ## Battery voltage
