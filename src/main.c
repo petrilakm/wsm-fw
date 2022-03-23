@@ -197,7 +197,7 @@ ISR(TIMER0_COMPA_vect) {
 }
 
 void send_speed(uint16_t speed) {
-	char data[7];
+	uint8_t data[7];
 
 	data[0] = 0x94;
 	data[1] = 0x81;
@@ -208,7 +208,7 @@ void send_speed(uint16_t speed) {
 	                  (data[4] & 0x7F));
 	data[6] = 0;
 
-	uart_putstr(data);
+	uart_putstr((char*)data);
 }
 
 void opto_hist_reset() {
@@ -234,7 +234,7 @@ uint16_t opto_get_interval() {
 }
 
 void send_distance(uint32_t distance) {
-	char data[9];
+	uint8_t data[9];
 
 	data[0] = 0x96;
 	data[1] = 0x82;
@@ -248,7 +248,7 @@ void send_distance(uint32_t distance) {
 	                 (data[4] & 0x7F) ^ (data[5] & 0x7F) ^ (data[6] & 0x7F));
 	data[8] = 0;
 
-	uart_putstr(data);
+	uart_putstr((char*)data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -290,7 +290,7 @@ ISR(ADC_vect) {
 }
 
 void send_battery_voltage(uint16_t voltage, bool critical) {
-	char data[5];
+	uint8_t data[5];
 
 	data[0] = 0xA2;
 	data[1] = (voltage >> 7) | (critical << 6) | 0x80;
@@ -298,7 +298,7 @@ void send_battery_voltage(uint16_t voltage, bool critical) {
 	data[3] = 0x80 | (0x22 ^ (data[1] & 0x7F) ^ (data[2] & 0x7F));
 	data[4] = 0;
 
-	uart_putstr(data);
+	uart_putstr((char*)data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
