@@ -18,6 +18,11 @@ so you may assemble it and program the processor later.
 
 Currently, EEPROM is not used.
 
+Fuses:
+```
+-U lfuse:w:0xed:m -U hfuse:w:0xd9:m -U efuse:w:0xfe:m
+```
+
 ## Resources
 
  * [Communication protocol](protocol.md)
