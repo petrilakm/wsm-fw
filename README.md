@@ -9,6 +9,10 @@ ATmega328p.
 This firmware is developed in C language, compiled via `avr-gcc` with help
 of `make`. You may also find tools like `avrdude` helpful.
 
+```bash
+$ make
+```
+
 Hex files are available in *Releases* section.
 
 ## Programming
@@ -21,6 +25,11 @@ Currently, EEPROM is not used.
 Fuses:
 ```
 -U lfuse:w:0xed:m -U hfuse:w:0xd9:m -U efuse:w:0xfe:m
+```
+
+```bash
+$ make fuses
+$ make program
 ```
 
 ## Resources
