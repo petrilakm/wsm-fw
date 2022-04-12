@@ -47,6 +47,8 @@ volatile bool bat_send_voltage = false;
 volatile uint16_t bat_voltage;
 volatile bool bat_first_measure = true;
 
+volatile uint8_t led_yellow_timeout = 0;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 const uint16_t BAT_CRITICAL = 783; // 3.5 V
@@ -75,6 +77,9 @@ int main() {
 			bat_start_measure();
 			bat_timer = 0;
 		}
+        if (bat_timer == 1) {
+          led_green_off();
+        }
 
 		dist_timer++;
 		if (dist_timer == DISTANCE_TIMEOUT) {
@@ -162,12 +167,14 @@ ISR(TIMER1_CAPT_vect) {
 		}
 	} else {
 		opto_last_measure_time_ok = true;
+        
 	}
 	opto_last_measure_time = time;
 	opto_timeout_counter = 0;
 
-	led_yellow_toggle();
 	opto_counter++;
+    led_yellow_on();
+    led_yellow_timeout = 3;
 }
 
 ISR(TIMER0_COMPA_vect) {
@@ -194,6 +201,13 @@ ISR(TIMER0_COMPA_vect) {
 		opto_hist[new_opto_hist_index].ticks_sum = 0;
 		opto_hist_index = new_opto_hist_index;
 	}
+    
+    if (led_yellow_timeout > 0) {
+      led_yellow_timeout--;
+      if (led_yellow_timeout == 0) {
+        led_yellow_off();
+      }
+    }
 }
 
 void send_speed(uint16_t speed) {
@@ -281,7 +295,7 @@ ISR(ADC_vect) {
 		led_red_off();
 
 	bat_send_voltage = true;
-	led_green_off();
+	//led_green_off();
 
 	if (value < BAT_CRITICAL && !bat_first_measure)
 		should_shutdown = true;
