@@ -172,8 +172,10 @@ ISR(TIMER1_CAPT_vect) {
 	opto_timeout_counter = 0;
 
 	opto_counter++;
-	led_yellow_on();
-	led_yellow_timeout = 3;
+	if (led_yellow_timeout == 0) {
+		led_yellow_on();
+		led_yellow_timeout = 3;
+	}
 }
 
 ISR(TIMER0_COMPA_vect) {
@@ -293,7 +295,6 @@ ISR(ADC_vect) {
 		led_red_off();
 
 	bat_send_voltage = true;
-	//led_green_off();
 
 	if (value < BAT_CRITICAL && !bat_first_measure)
 		should_shutdown = true;
