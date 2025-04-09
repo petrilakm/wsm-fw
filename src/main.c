@@ -33,7 +33,7 @@ typedef struct {
 	uint16_t ticks_count;
 } TicksHistoryItem;
 
-#define OPTO_HIST_LEN 10u
+#define OPTO_HIST_LEN 8u // same as mechanical ticks per revolution
 #define OPTO_TIMEOUT 50 // 500 ms
 #define OPTO_MIN_TICKS 250u // minimal 250 ticks (~ 300 kmph in TT)
 volatile TicksHistoryItem opto_hist[OPTO_HIST_LEN];
